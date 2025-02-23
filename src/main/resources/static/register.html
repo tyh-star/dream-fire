@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <style>
+    /* CSS 样式 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f2f3f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .register-container {
+      width: 320px;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .register-container h2 {
+      margin-bottom: 20px;
+      font-size: 22px;
+      color: #333;
+    }
+
+    .register-container input[type="text"],
+    .register-container input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      background-color: #f7f8fa;
+      font-size: 14px;
+    }
+
+    .register-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .register-container button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+<div class="register-container">
+  <h2>Register</h2>
+  <input type="text" id="userName" placeholder="Username" required>
+  <input type="password" id="password" placeholder="Password" required>
+  <input type="text" id="phone" placeholder="Phone" required>
+  <button onclick="register()">Register</button>
+</div>
+<script>
+  function register() {
+    const userName = document.getElementById("userName").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+
+    if (!userName || !password || !phone) {
+      alert("All fields are required.");
+      return;
+    }
+
+    fetch('/user/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userName, password, phone }) // 发送用户数据
+    })
+            .then(response => {
+              if (response.ok) {
+                return response.json(); // 假设后端返回 JSON 数据
+              } else {
+                return response.text().then(msg => {
+                  throw new Error(msg); // 捕获错误信息
+                });
+              }
+            })
+            .then(data => {
+              console.log("Response data from backend:", data); // 打印后端返回数据
+
+              // 显示成功信息，但不存储 token
+              alert(`Registration successful! Welcome, ${userName}`);
+              window.location.href = "login.html"; // 跳转到登录页面
+            })
+            .catch(error => {
+              console.error("Error during registration:", error);
+              alert("Registration failed: " + error.message);
+            });
+  }
+
+
+</script>
+
+</body>
+</html>

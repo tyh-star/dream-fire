@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Information</title>
+    <style>
+        /* 基础样式 */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .user-info {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        a {
+            display: block;
+            width: 200px;
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .cart-btn {
+            background-color: #007bff;
+        }
+
+        .cart-btn:hover {
+            background-color: #0056b3;
+        }
+        .logout-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #ff6600;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            background-color: #e65c00;
+        }
+    </style>
+</head>
+<body>
+
+<h2>User Profile</h2>
+<div id="user-info" class="user-info">
+    <!-- 用户信息将动态填充 -->
+</div>
+<a href="cart.html" class="cart-btn">Go to Cart</a>
+<a href="#" class="logout-btn" onclick="logout()">Logout</a>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 直接获取存储的用户数据
+        const userData = localStorage.getItem("loggedInUser");
+        console.log("Stored user data:", userData);
+
+        if (!userData) {
+            alert("No user is logged in. Redirecting to login page.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // 解析用户数据
+        let user;
+        try {
+            user = JSON.parse(userData); // 确保存储的数据是 JSON 格式字符串
+        } catch (error) {
+            console.error("Failed to parse user data. Error:", error);
+            localStorage.removeItem("authToken");
+            alert("Invalid user data. Redirecting to login page.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // 动态生成页面内容
+        document.getElementById("user-info").innerHTML = `
+            <p><strong>UserID:</strong> ${user.userId}</p>
+            <p><strong>Username:</strong> ${user.userName}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Phone:</strong> ${user.phone || "N/A"}</p>
+        `;
+    });
+
+    function logout() {
+        // 清除存储的用户数据并跳转
+        localStorage.removeItem("authToken");
+        window.location.href = "login.html";
+    }
+</script>
+
+</script>
+
+
+
+</body>
+</html>

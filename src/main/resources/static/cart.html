@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart (IDs only)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .cart-container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item p {
+            margin: 0;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #888;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Shopping Cart (IDs Only)</h1>
+<div class="cart-container" id="cart-container">
+    <p class="loading">Loading your cart...</p>
+</div>
+
+<script>
+    // 页面加载时执行
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // 获取用户信息
+            const userData = localStorage.getItem('loggedInUser');
+            if (!userData) {
+                alert('User is not logged in. Redirecting to login page.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const user = JSON.parse(userData);
+            if (!user.userId) {
+                alert('Invalid user data. Redirecting to login page.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // 获取购物车数据
+            const cartItems = await fetchCartItems(user.userId);
+            if (cartItems.length === 0) {
+                renderEmptyCart();
+                return;
+            }
+
+            // 获取商品详情并渲染
+            const detailedItems = await fetchProductDetails(cartItems);
+            renderCartItems(detailedItems);
+        } catch (error) {
+            console.error('Error loading cart:', error);
+            const cartContainer = document.getElementById('cart-container');
+            cartContainer.innerHTML = '<p class="empty-cart">Failed to load your cart. Please try again later.</p>';
+        }
+    });
+
+    // 查询购物车内容
+    async function fetchCartItems(userId) {
+        const url = `/cart/items?userId=${encodeURIComponent(userId)}`;
+        const response = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch cart items. Status: ${response.status}`);
+        }
+        return response.json(); // 假设返回 [{ productId: 1, quantity: 2 }, ...]
+    }
+
+    // 根据商品 ID 获取商品详细信息
+    async function fetchProductDetails(cartItems) {
+        const detailedItems = [];
+
+        for (const item of cartItems) {
+            try {
+                const response = await fetch(`/product/${item.productId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) {
+                    console.error(`Failed to fetch product details for ID ${item.productId}. Status: ${response.status}`);
+                    continue;
+                }
+                const product = await response.json(); // Assume response is { id: 1, name: "Product Name", price: 100, mainImageUrl: "path/to/image.jpg" }
+
+                const imageUrl = product.mainImageUrl
+                    ? `http://35.183.41.31:8080${product.mainImageUrl}`
+                    : "http://35.183.41.31:8080/images/default-image.png";
+
+                detailedItems.push({
+                    ...item,
+                    name: product.productName,
+                    price: product.price,
+                    img: imageUrl,
+                });
+            } catch (error) {
+                console.error(`Error fetching details for product ID ${item.productId}:`, error);
+            }
+        }
+
+        return detailedItems;
+    }
+
+
+    // 渲染购物车内容 (显示商品详情)
+    function renderCartItems(cartItems) {
+        const cartContainer = document.getElementById('cart-container');
+        cartContainer.innerHTML = ''; // 清空当前内容
+
+        cartItems.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'cart-item';
+            itemDiv.innerHTML = `
+        <img src="${item.img}" alt="Image of ${item.productName}" style="max-width: 200px; height: auto;">
+        <p>Product ID: <strong>${item.productId}</strong></p>
+        <p>Name: ${item.name}</p>
+        <p>Price: $${item.price.toFixed(2)}</p>
+        <p>Quantity: ${item.quantity}</p>
+      `;
+            cartContainer.appendChild(itemDiv);
+        });
+    }
+
+    // 渲染空购物车
+    function renderEmptyCart() {
+        const cartContainer = document.getElementById('cart-container');
+        cartContainer.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
+    }
+</script>
+
+
+</body>
+</html>

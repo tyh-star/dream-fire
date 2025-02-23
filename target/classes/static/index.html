@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <script src="/js/vue.js"></script>
+    <script src="/js/axios.js"></script>
+</head>
+<body>
+<div id="app">
+<table border="1" width="48%" style="text-align: center;">
+    <tr>
+        <td colspan="5">
+            <h1>用户列表</h1>
+        </td>
+    </tr>
+    <tr>
+        <td>编号</td>
+        <td>用户名</td>
+        <td>电话</td>
+    </tr>
+
+    <tr>
+        <td colspan="3" style="text-align: left;">
+            <button type="button" @click="getUserList">显示表格</button>
+        </td>
+    </tr>
+    <tr v-for="user in userList">
+        <td v-text="user.userId"></td>
+        <td v-text="user.userName"></td>
+        <td v-text="user.phone"></td>
+    </tr>
+</table>
+</div>
+<script>
+    // 设定axios的请求前缀
+    axios.defaults.baseURL = "http://localhost:8080"
+
+    // 指定VUE的渲染区域
+    const app = new Vue({
+        el: "#app",
+        data: {
+            // 定义集合来存储数据, 此时数据为null
+            userList: []
+        },
+        methods: {
+            // 1. 定义getUserList方法 获取后台服务器数据
+            async getUserList() {
+                // 新增操作请求的类型: post  接收时需要使用JSON方式处理
+                let {
+                    data: result
+                } = await axios.get("/user/all")
+                // Ajax调用之后, 将请求结果赋值给data属性
+                this.userList = result.list;
+            }
+        }
+    })
+</script>
+
+
+</body>
+</html>

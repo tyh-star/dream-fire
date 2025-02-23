@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Search Results</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #007bff;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    #results-container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-card {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: #f9f9f9;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .product-image {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-right: 15px;
+    }
+
+    .product-card h3 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+
+    .product-card p {
+      margin: 5px 0;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .product-card strong {
+      color: #000;
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .product-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .product-image {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Search Results</h1>
+</header>
+
+<div id="results-container">
+  <p>Loading results...</p>
+</div>
+
+<footer>
+  <p>&copy; 2025 Your Company. All rights reserved.</p>
+</footer>
+
+<script>
+  // Function to load and display search results
+  async function loadSearchResults() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get("query");
+
+    if (!query) {
+      document.getElementById("results-container").innerHTML = "<p>No search query provided. Please go back and try again.</p>";
+      return;
+    }
+
+    try {
+      const response = await fetch(`/product/all?query=${encodeURIComponent(query)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const products = await response.json();
+      renderResults(products.list || []);
+    } catch (error) {
+      document.getElementById("results-container").innerHTML = `<p>Error loading products: ${error.message}</p>`;
+      console.error("Error loading search results:", error);
+    }
+  }
+
+  // Function to render product results
+  function renderResults(products) {
+    const container = document.getElementById("results-container");
+    container.innerHTML = ""; // Clear previous content
+
+    if (products.length === 0) {
+      container.innerHTML = "<p>No products found for your search.</p>";
+      return;
+    }
+
+    products.forEach(product => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+
+      // Generate the image URL dynamically
+      let imageUrl;
+      if (product.mainImageUrl) {
+        imageUrl = product.mainImageUrl
+                ? `http://35.183.41.31:8080${product.mainImageUrl}`
+                : "http://35.183.41.31:8080/images/default-image.png";
+      } else {
+        // Use default image if mainImageUrl is not available
+        imageUrl = `http://35.183.41.31:8080/images/default-image.png`;
+      }
+
+      // Render the product card
+      card.innerHTML = `
+            <img class="product-image" src="${imageUrl}" alt="${product.productName || 'Product Image'}"
+                 onerror="this.src='http://35.183.41.31:8080/images/default-image.png';">
+            <div class="product-details">
+                <h3>${product.productName}</h3>
+                <p>${product.description}</p>
+                <p><strong>Price:</strong> $${product.price.toFixed(2)}</p>
+            </div>
+        `;
+
+      // Add click event listener to navigate to productDetail.html
+      card.addEventListener('click', () => {
+        const productData = encodeURIComponent(JSON.stringify(product));
+        window.location.href = `productDetail.html?productData=${productData}`;
+      });
+
+      // Append the product card to the container
+      container.appendChild(card);
+    });
+  }
+
+  // Load results when the page is fully loaded
+  document.addEventListener("DOMContentLoaded", loadSearchResults);
+
+</script>
+
+</body>
+</html>
+

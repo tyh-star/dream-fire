@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ht.dao.ProductDao">
+
+    <!-- 定义表名 -->
+    <sql id="BASE_TABLE">
+        product
+    </sql>
+
+    <!-- 定义列名 -->
+    <sql id="BASE_COLUMN">
+        productId, productName, price, description, stock, mainImageUrl,
+        imageUrl1, imageUrl2, imageUrl3, imageUrl4, imageUrl5, category
+    </sql>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="com.ht.model.ProductDomain">
+        INSERT INTO
+        <include refid="BASE_TABLE"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            productName, price, description, stock, mainImageUrl,
+            imageUrl1, imageUrl2, imageUrl3, imageUrl4, imageUrl5, category
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            #{productName, jdbcType=VARCHAR}, #{price, jdbcType=DECIMAL},
+            #{description, jdbcType=CLOB}, #{stock, jdbcType=INTEGER},
+            #{mainImageUrl, jdbcType=VARCHAR}, #{imageUrl1, jdbcType=VARCHAR},
+            #{imageUrl2, jdbcType=VARCHAR}, #{imageUrl3, jdbcType=VARCHAR},
+            #{imageUrl4, jdbcType=VARCHAR}, #{imageUrl5, jdbcType=VARCHAR},
+            #{category, jdbcType=VARCHAR}
+        </trim>
+    </insert>
+
+    <select id="selectProduct" parameterType="map" resultType="com.ht.model.ProductDomain">
+        SELECT
+        productId, productName, price, description, stock, mainImageUrl, imageUrl1, imageUrl2, imageUrl3, imageUrl4, imageUrl5, category
+        FROM product
+        <where>
+            <!-- 动态条件：按商品分类 -->
+            <if test="query != null and query != ''">
+                OR category LIKE CONCAT('%', #{query}, '%')
+            </if>
+            <!-- 动态条件：按商品名称 -->
+            <if test="query != null and query != ''">
+                OR productName LIKE CONCAT('%', #{query}, '%')
+            </if>
+        </where>
+    </select>
+
+
+
+    <!--返回随机商品-->
+    <select id="findRandomProducts" resultType="com.ht.model.ProductDomain">
+        SELECT
+        <include refid="BASE_COLUMN"/>  <!-- 引用基础列 -->
+        FROM
+        <include refid="BASE_TABLE"/>   <!-- 引用表名 -->
+        ORDER BY RAND()
+    </select>
+
+
+    <!-- 根据产品ID查询 -->
+    <select id="selectById" parameterType="int" resultType="com.ht.model.ProductDomain">
+        SELECT
+        <include refid="BASE_COLUMN"/>
+        FROM
+        <include refid="BASE_TABLE"/>
+        WHERE productId = #{productId}
+    </select>
+
+    <!-- 删除产品 -->
+    <delete id="del" parameterType="int">
+        DELETE FROM
+        <include refid="BASE_TABLE"/>
+        WHERE productId = #{productId}
+    </delete>
+
+    <!-- 更新产品 -->
+    <update id="update" parameterType="com.ht.model.ProductDomain">
+        UPDATE
+        <include refid="BASE_TABLE"/>
+        <set>
+            <if test="productName != null">
+                productName = #{productName, jdbcType=VARCHAR},
+            </if>
+            <if test="price != null">
+                price = #{price, jdbcType=DECIMAL},
+            </if>
+            <if test="description != null">
+                description = #{description, jdbcType=CLOB},
+            </if>
+            <if test="stock != null">
+                stock = #{stock, jdbcType=INTEGER},
+            </if>
+            <if test="mainImageUrl != null">
+                mainImageUrl = #{mainImageUrl, jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl1 != null">
+                imageUrl1 = #{imageUrl1, jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl2 != null">
+                imageUrl2 = #{imageUrl2, jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl3 != null">
+                imageUrl3 = #{imageUrl3, jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl4 != null">
+                imageUrl4 = #{imageUrl4, jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl5 != null">
+                imageUrl5 = #{imageUrl5, jdbcType=VARCHAR},
+            </if>
+            <if test="category != null">
+                category = #{category, jdbcType=VARCHAR},
+            </if>
+        </set>
+        WHERE productId = #{productId}
+    </update>
+    <select id="findProductById" parameterType="int" resultType="com.ht.model.ProductDomain">
+        SELECT * FROM product WHERE productId = #{productId}
+    </select>
+</mapper>
+

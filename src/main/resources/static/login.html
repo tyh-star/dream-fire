@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-container {
+      background-color: #ffffff;
+      width: 300px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff6600;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e65c00;
+    }
+  </style>
+</head>
+<body>
+<div class="login-container">
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Enter Username">
+  <input type="password" id="password" placeholder="Enter Password">
+  <button onclick="login()">Login</button>
+  <button class="secondary-button" onclick="goToRegister()">Register</button>
+</div>
+
+<script>
+  let allUsers = []; // 用于存储所有用户数据
+
+  // 加载所有用户数据
+  function loadAllUsers() {
+    let pageNum = 1; // 初始页码
+    const pageSize = 10; // 每页加载 10 条
+    let hasNextPage = true; // 是否有下一页
+
+    function fetchPage(page) {
+      return fetch(`/user/all?pageNum=${page}&pageSize=${pageSize}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Failed to fetch user data');
+                }
+                return response.json();
+              })
+              .then(data => {
+                if (!data.list || !Array.isArray(data.list)) {
+                  throw new Error('Invalid user data received');
+                }
+
+                // 合并数据
+                allUsers = allUsers.concat(data.list);
+
+                console.log(`Loaded page ${page}:`, data.list);
+
+                // 更新是否有下一页
+                hasNextPage = data.hasNextPage;
+
+                // 如果有下一页，递归加载下一页
+                if (hasNextPage) {
+                  return fetchPage(page + 1);
+                }
+              })
+              .catch(error => {
+                console.error('Error loading users:', error);
+                alert('An error occurred while loading user data.');
+              });
+    }
+
+    // 开始从第一页加载
+    return fetchPage(pageNum).then(() => {
+      console.log('All users loaded:', allUsers);
+    });
+  }
+
+  // 登录功能
+  function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!username || !password) {
+      alert('Please enter both username and password.');
+      return;
+    }
+
+    // 在所有用户中查找匹配的用户
+    const user = allUsers.find(
+            user => user.userName === username && user.password === password
+    );
+
+    if (user) {
+      alert('Login successful');
+      localStorage.setItem('loggedInUser', JSON.stringify(user)); // 保存登录用户信息
+      window.location.href = 'shopping.html'; // 跳转到下一页面
+    } else {
+      alert('Invalid username or password');
+    }
+  }
+  function goToRegister() {
+    window.location.href = 'register.html';
+  }
+  window.onload = function () {
+    document.getElementById('username').value = 'tyh';
+    document.getElementById('password').value = '123456';
+  };
+  // 页面加载时自动加载所有用户数据
+  loadAllUsers();
+</script>
+</body>
+</html>
+
+

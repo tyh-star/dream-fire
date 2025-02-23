@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    .product-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .product-image {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .product-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .product-price {
+      font-size: 20px;
+      color: #e60023;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .product-description, .product-category, .product-stock {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .product-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .product-images img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .add-to-cart {
+      display: block;
+      width: 100%;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #28a745;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .add-to-cart:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+<div class="product-container">
+  <img id="main-image" class="product-image" src="" alt="Product Image">
+  <div class="product-name" id="product-name">Product Name</div>
+  <div class="product-price" id="product-price">Price</div>
+  <div class="product-description" id="product-description">Description</div>
+  <div class="product-category" id="product-category">Category</div>
+  <div class="product-stock" id="product-stock">Stock</div>
+  <div class="product-images" id="product-images"></div>
+  <button id="add-to-cart" class="add-to-cart">Add to Cart</button>
+</div>
+<script>
+  // 解析 URL 参数并获取商品数据
+  function getQueryParam(param) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(param);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const productData = getQueryParam('productData');
+    const userData= localStorage.getItem("loggedInUser");
+    if (!productData||!userData) {
+      document.body.innerHTML = '<p>No product data found. Please go back and try again.</p>';
+      return;
+    }
+
+    try {
+      // 解码并解析商品数据
+      const product = JSON.parse(decodeURIComponent(productData));
+      const user = JSON.parse(userData);
+
+      // 填充页面内容
+      document.getElementById('product-name').textContent = product.productName || 'N/A';
+      document.getElementById('product-price').textContent = `¥${product.price || '0.00'}`;
+      document.getElementById('product-description').textContent = product.description || 'No description available';
+      document.getElementById('product-category').textContent = `Category: ${product.category || 'N/A'}`;
+      document.getElementById('product-stock').textContent = `Stock: ${product.stock || '0'}`;
+
+      // 主图逻辑
+      const mainImageUrl = product.mainImageUrl
+              ? `http://35.183.41.31:8080${product.mainImageUrl}`
+              : "http://35.183.41.31:8080/images/default-image.png";
+      const mainImage = document.getElementById('main-image');
+      mainImage.src = mainImageUrl;
+      mainImage.onerror = () => {
+        mainImage.src = 'http://localhost:8080/images/default-image.png';
+      };
+
+      // 附加图片逻辑
+      const imageContainer = document.getElementById('product-images');
+      const imageUrls = [
+        product.imageUrl1,
+        product.imageUrl2,
+        product.imageUrl3,
+        product.imageUrl4,
+        product.imageUrl5
+      ].filter(Boolean); // 过滤掉空的 URL
+
+      imageUrls.forEach(url => {
+        const imageFileName = url ? url.split('/').pop() : 'default-image.png';
+        const imageUrl = `http://localhost:8080/images/${imageFileName}`;
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = 'Product Image';
+        img.onerror = () => {
+          img.src = 'http://localhost:8080/images/default-image.png';
+        };
+        imageContainer.appendChild(img);
+      });
+
+      // 绑定添加到购物车按钮
+      const addToCartButton = document.getElementById('add-to-cart');
+      addToCartButton.addEventListener('click', () => {
+        addToCart(user.userId,product.productId, 1); // 默认添加 1 个商品
+      });
+
+    } catch (error) {
+      console.error('Error parsing product data:', error);
+      document.body.innerHTML = '<p>Error displaying product details. Please try again later.</p>';
+    }
+  });
+
+  // 添加到购物车逻辑
+  // 添加到购物车逻辑
+  function addToCart(userId,productId, quantity) {
+
+    // 构建查询字符串参数
+    const params = new URLSearchParams({
+      userId: userId,
+      productId: productId,
+      quantity: quantity,
+    }).toString();
+
+    // 发送 POST 请求
+    fetch(`/cart/add?${params}`, {
+      method: 'POST'
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('Added to cart successfully!');
+              } else {
+                alert('Failed to add to cart. Please try again.');
+              }
+            })
+            .catch(error => {
+              console.error('Error adding to cart:', error);
+              alert('Error adding to cart. Please try again.');
+            });
+  }
+
+</script>
+</body>
+</html>
+
+
+
+
